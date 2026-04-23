@@ -1,230 +1,580 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>농작물생산조사 기점 계산기</title>
-    <style>
-        body { font-family: -apple-system, system-ui, sans-serif; padding: 10px; background-color: #f0f2f5; color: #1c1e21; margin: 0; }
-        .container { max-width: 500px; margin: 10px auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-        h2 { text-align: center; color: #1a237e; font-size: 1.5rem; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #9fa8da; padding-bottom: 10px; }
-        .section { background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-        .section-title { font-weight: bold; color: #283593; margin-bottom: 15px; font-size: 1rem; display: flex; align-items: center; }
-        .section-title::before { content: "📋"; margin-right: 8px; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 6px; font-size: 0.9rem; font-weight: 600; color: #4b4b4b; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 12px; border: 1px solid #ccd0d5; border-radius: 8px; box-sizing: border-box; font-size: 1rem; background-color: #f9fafb; }
-        input:focus { outline: none; border-color: #3f51b5; background-color: #fff; box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2); }
-        .ratio-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .ratio-item { text-align: center; }
-        .ratio-item span { font-size: 0.75rem; color: #777; display: block; margin-bottom: 4px; }
-        .btn-group { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 20px; }
-        button { padding: 16px; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
-        .btn-calc { background-color: #1a237e; color: white; }
-        .btn-reset { background-color: #e4e6eb; color: #4b4b4b; }
-        .result-panel { margin-top: 20px; display: none; }
-        .summary-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 10px; padding: 12px; margin-bottom: 15px; font-size: 0.85rem; line-height: 1.6; }
-        .result-card { background: #e8eaf6; border: 1px solid #c5cae9; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-        .card-header { font-weight: bold; color: #1a237e; border-bottom: 1px solid #c5cae9; margin-bottom: 10px; padding-bottom: 5px; font-size: 1rem; }
-        .res-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.95rem; }
-        .res-label { flex: 1; font-weight: 600; color: #333; }
-        .res-vals { text-align: right; }
-        .res-val-main { font-weight: 900; color: #d32f2f; display: block; font-size: 1.3rem; }
-        .res-val-sub { font-size: 0.85rem; color: #666; display: block; margin-top: 2px; }
-        .alert-box { background-color: #ffebee; color: #c62828; padding: 12px; border-radius: 8px; margin-top: 10px; font-weight: bold; text-align: center; display: none; border: 1px solid #ffcdd2; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>기점 계산기 · 농작물생산조사</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+:root{
+  --g50:#EAF3DE;--g100:#C0DD97;--g200:#97C459;--g400:#639922;--g600:#3B6D11;--g800:#27500A;
+  --t50:#E1F5EE;--t100:#9FE1CB;--t400:#1D9E75;--t600:#0F6E56;--t800:#085041;
+  --a50:#FAEEDA;--a400:#EF9F27;--a600:#854F0B;
+  --gr50:#F1EFE8;--gr100:#D3D1C7;--gr200:#B4B2A9;--gr600:#5F5E5A;--gr800:#444441;
+  --rad:8px;--radl:12px;--radxl:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--gr50);color:var(--gr800);min-height:100vh;padding:14px 12px 48px;}
+
+.suite-row{display:flex;align-items:center;gap:8px;max-width:500px;margin:0 auto 10px;}
+.suite-tag{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--g800);color:var(--g50);padding:3px 10px;border-radius:100px;white-space:nowrap;}
+.suite-line{flex:1;height:1px;background:var(--gr100);}
+.wrap{max-width:500px;margin:0 auto;display:flex;flex-direction:column;gap:11px;}
+
+.hdr{background:var(--g800);border-radius:var(--radxl);padding:16px 20px 14px;color:#fff;position:relative;overflow:hidden;}
+.hdr::before{content:'';position:absolute;top:-28px;right:-28px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.06);}
+.hdr-sub{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--g100);margin-bottom:4px;}
+.hdr-ttl{font-size:19px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.hdr-crop-badge{font-size:12px;font-weight:700;background:var(--g400);color:#fff;padding:2px 10px;border-radius:100px;display:none;}
+.hdr-ico{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:36px;opacity:.18;}
+
+.card{background:#fff;border-radius:var(--radl);border:.5px solid var(--gr100);padding:15px;}
+.card-ttl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t600);margin-bottom:12px;padding-bottom:9px;border-bottom:.5px solid var(--gr50);}
+
+/* ── Crop buttons ── */
+.crop-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:13px;}
+.crop-btn{padding:8px 4px 6px;border:.5px solid var(--gr100);border-radius:var(--rad);background:var(--gr50);font-size:11px;font-weight:500;color:var(--gr600);cursor:pointer;text-align:center;transition:all .15s;font-family:inherit;line-height:1;}
+.crop-btn:hover{border-color:var(--g200);background:var(--g50);}
+.crop-btn.active{background:var(--g800);border-color:var(--g800);color:#fff;font-weight:700;}
+.crop-ico{display:flex;justify-content:center;align-items:center;height:22px;margin-bottom:4px;}
+
+.fg{margin-bottom:11px;}
+.fg:last-child{margin-bottom:0;}
+label{display:block;font-size:12px;font-weight:500;color:var(--gr600);margin-bottom:4px;}
+input[type=text],input[type=number],input[type=date]{width:100%;padding:10px 12px;border:.5px solid var(--gr100);border-radius:var(--rad);font-size:14px;font-family:inherit;background:var(--gr50);color:var(--gr800);transition:border-color .15s,background .15s;-webkit-appearance:none;appearance:none;}
+input:focus{outline:none;border-color:var(--t600);background:#fff;box-shadow:0 0 0 3px rgba(15,110,86,.1);}
+.hint{font-size:11px;color:var(--gr600);margin-top:4px;}
+.hint-v{font-weight:700;color:var(--t600);}
+
+.mode-toggle{display:inline-flex;border:.5px solid var(--gr100);border-radius:var(--rad);overflow:hidden;margin-bottom:12px;}
+.mtog{padding:7px 16px;font-size:12px;font-weight:700;font-family:inherit;border:none;background:var(--gr50);color:var(--gr600);cursor:pointer;transition:all .15s;}
+.mtog.active{background:var(--t600);color:#fff;}
+
+.ab-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.ab-group{border:.5px solid var(--gr100);border-radius:var(--rad);padding:10px;}
+.ab-group.a-grp{border-color:var(--t100);background:var(--t50);}
+.ab-group.b-grp{border-color:var(--g100);background:var(--g50);}
+.ab-label{font-size:11px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.ab-label.a-lbl{color:var(--t800);}
+.ab-label.b-lbl{color:var(--g800);}
+.ab-badge{width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0;}
+.ab-badge.a{background:var(--t600);}
+.ab-badge.b{background:var(--g600);}
+
+.ratio-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px;}
+.rtog-btn{padding:8px;border:.5px solid var(--gr100);border-radius:var(--rad);background:var(--gr50);font-size:12px;font-weight:500;color:var(--gr600);cursor:pointer;text-align:center;transition:all .15s;font-family:inherit;}
+.rtog-btn.active{background:var(--t600);border-color:var(--t600);color:#fff;}
+.ratio-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px;border:.5px solid var(--gr100);border-radius:var(--rad);background:var(--gr50);transition:all .2s;}
+.ratio-row.active{border-color:var(--t400);background:#fff;box-shadow:0 0 0 2px rgba(15,110,86,.07);}
+.rc{display:flex;flex-direction:column;gap:4px;text-align:center;}
+.rc-lbl{font-size:10px;color:var(--gr600);font-weight:500;}
+.rc input{text-align:center;padding:8px 4px;font-size:13px;}
+
+.btn-row{display:grid;grid-template-columns:1fr 2fr;gap:10px;}
+button.btn{padding:14px;border:none;border-radius:var(--rad);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:opacity .15s,transform .1s;}
+button.btn:active{transform:scale(.97);}
+.btn-reset{background:var(--gr50);border:.5px solid var(--gr100);color:var(--gr600);}
+.btn-calc{background:var(--g800);color:#fff;}
+
+.alert{display:none;background:var(--a50);border:.5px solid var(--a400);border-radius:var(--rad);padding:10px 13px;font-size:12px;font-weight:500;color:var(--a600);text-align:center;}
+
+.results{display:none;flex-direction:column;gap:11px;}
+.capture-info{background:var(--g800);border-radius:var(--rad);padding:11px 14px;font-size:11px;line-height:1.85;color:var(--g100);}
+.capture-info strong{color:#fff;font-weight:700;}
+.summary-card{background:var(--gr50);border:.5px solid var(--gr100);border-radius:var(--rad);padding:11px 13px;font-size:11px;line-height:1.9;color:var(--gr600);}
+.summary-card strong{color:var(--gr800);font-weight:700;}
+.res-card{background:#fff;border-radius:var(--radl);border:.5px solid var(--gr100);overflow:hidden;}
+.res-hdr{padding:10px 14px;font-size:12px;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:6px;}
+.res-hdr.a{background:var(--t50);color:var(--t800);border-bottom:.5px solid var(--t100);}
+.res-hdr.b{background:var(--g50);color:var(--g800);border-bottom:.5px solid var(--g100);}
+.res-rows{padding:2px 0;}
+.res-row{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:.5px solid var(--gr50);}
+.res-row:last-child{border-bottom:none;}
+.res-lbl{font-size:12px;color:var(--gr600);font-weight:500;}
+.res-right{text-align:right;}
+.res-main{display:block;font-size:20px;font-weight:700;color:var(--g800);line-height:1.2;}
+.res-sub{display:block;font-size:10px;color:var(--gr200);margin-top:1px;}
+
+.diag-card{background:#fff;border-radius:var(--radl);border:.5px solid var(--gr100);overflow:hidden;}
+.diag-hdr{padding:10px 14px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--g800);background:var(--g50);border-bottom:.5px solid var(--g100);}
+.diag-body{padding:14px 10px 8px;}
+#fieldSvg{width:100%;height:auto;display:block;}
+
+.btn-capture{width:100%;padding:13px;background:#fff;border:.5px solid var(--gr100);border-radius:var(--rad);font-size:13px;font-weight:700;font-family:inherit;color:var(--g800);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .15s;}
+.btn-capture:hover{background:var(--g50);}
+</style>
 </head>
 <body>
-<div class="container">
-    <h2>🌾 농작물생산조사 기점 계산기</h2>
-    
-    <div class="section">
-        <label>필지 주소</label>
-        <input type="text" id="address" placeholder="필지 주소 입력">
-    </div>
 
-    <div class="section">
-        <div class="section-title">비율 설정</div>
-        <div style="margin-bottom:10px;">
-            <label style="font-size:0.85rem;"><input type="radio" name="rType" value="1" checked> 1번 비율 세트</label>
-            <div class="ratio-grid">
-                <div class="ratio-item"><span>가(가로)</span><input type="text" id="r1_ga" value="0."></div>
-                <div class="ratio-item"><span>나(A세로)</span><input type="text" id="r1_na" value="0."></div>
-                <div class="ratio-item"><span>다(B세로)</span><input type="text" id="r1_da" value="0."></div>
-            </div>
-        </div>
-        <div>
-            <label style="font-size:0.85rem;"><input type="radio" name="rType" value="2"> 2번 비율 세트</label>
-            <div class="ratio-grid">
-                <div class="ratio-item"><span>가(가로)</span><input type="text" id="r2_ga" value="0."></div>
-                <div class="ratio-item"><span>나(A세로)</span><input type="text" id="r2_na" value="0."></div>
-                <div class="ratio-item"><span>다(B세로)</span><input type="text" id="r2_da" value="0."></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">조사값 입력</div>
-        <div class="input-group">
-            <label>가나 총길이 (추출간격)</label>
-            <input type="number" id="lenGaNa" oninput="updateHalf()" placeholder="숫자 입력">
-            <div style="font-size: 0.75rem; color: #777; margin-top: 4px;">👉 추출간격 / 2 = <span id="halfVal" style="color:#d32f2f; font-weight:bold;">0</span> (이랑/cm)</div>
-        </div>
-        <div class="input-group">
-            <label>A 지점 세로 총길이 (cm)</label>
-            <input type="number" id="heightA" placeholder="A 세로 전체">
-        </div>
-        <div class="input-group">
-            <label>B 지점 세로 총길이 (cm)</label>
-            <input type="number" id="heightB" placeholder="B 세로 전체">
-        </div>
-        <div class="input-group">
-            <label>A포구 10개 이랑 평균너비 (cm)</label>
-            <input type="number" id="waAvg" placeholder="평균값 입력">
-        </div>
-        <div class="input-group">
-            <label>B포구 10개 이랑 평균너비 (cm)</label>
-            <input type="number" id="wbAvg" placeholder="평균값 입력">
-        </div>
-    </div>
-
-    <div id="alertBox" class="alert-box">⚠️ 가로지점이 0입니다. <br>2번 비율을 사용하세요.</div>
-
-    <div class="btn-group">
-        <button class="btn-reset" onclick="location.reload()">초기화</button>
-        <button class="btn-calc" onclick="calculate()">계산하기</button>
-    </div>
-
-    <div id="resultBox" class="result-panel">
-        <div class="summary-card" id="inputSummary"></div>
-
-        <div class="result-card">
-            <div class="card-header">🅰️ A 포구 산출 결과</div>
-            <div class="res-row">
-                <span class="res-label">가로 기점</span>
-                <div class="res-vals">
-                    <span id="outA_ga" class="res-val-main">-</span>
-                    <span id="outA_ga_raw" class="res-val-sub">-</span>
-                </div>
-            </div>
-            <div class="res-row">
-                <span class="res-label">세로 기점</span>
-                <div class="res-vals">
-                    <span id="outA_se" class="res-val-main">-</span>
-                    <span id="outA_se_raw" class="res-val-sub">-</span>
-                </div>
-            </div>
-            <div class="res-row">
-                <span class="res-label">3㎡ 조사 이랑길이</span>
-                <div class="res-vals">
-                    <span id="outLenA" class="res-val-main">-</span>
-                    <span id="outLenA_raw" class="res-val-sub">-</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="result-card">
-            <div class="card-header">🅱️ B 포구 산출 결과</div>
-            <div class="res-row">
-                <span class="res-label">가로 기점</span>
-                <div class="res-vals">
-                    <span id="outB_ga" class="res-val-main">-</span>
-                    <span id="outB_ga_raw" class="res-val-sub">-</span>
-                </div>
-            </div>
-            <div class="res-row">
-                <span class="res-label">세로 기점</span>
-                <div class="res-vals">
-                    <span id="outB_se" class="res-val-main">-</span>
-                    <span id="outB_se_raw" class="res-val-sub">-</span>
-                </div>
-            </div>
-            <div class="res-row">
-                <span class="res-label">3㎡ 조사 이랑길이</span>
-                <div class="res-vals">
-                    <span id="outLenB" class="res-val-main">-</span>
-                    <span id="outLenB_raw" class="res-val-sub">-</span>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="suite-row">
+  <span class="suite-tag">농작물생산조사</span>
+  <span class="suite-line"></span>
 </div>
 
+<div class="wrap">
+
+  <div class="hdr">
+    <div class="hdr-sub">기점 선정 계산기</div>
+    <div class="hdr-ttl">조사 기점 산출 <span class="hdr-crop-badge" id="hdrCropBadge"></span></div>
+    <span class="hdr-ico">🌾</span>
+  </div>
+
+  <!-- 필지 정보 -->
+  <div class="card">
+    <div class="card-ttl">필지 정보</div>
+    <div style="margin-bottom:12px;">
+      <label style="margin-bottom:6px;">작물 선택</label>
+      <div class="crop-grid">
+
+        <!-- 논벼: rice panicle -->
+        <button class="crop-btn" data-crop="논벼" data-mode="길이" onclick="selectCrop(this)">
+          <div class="crop-ico"><svg width="22" height="24" viewBox="0 0 22 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="11" y1="23" x2="11" y2="11" stroke="#8B7320" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M11 11 C11 9 9.5 7 8 6" stroke="#9A8030" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <path d="M11 11 C10.5 9 10 7 10 5" stroke="#9A8030" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <path d="M11 11 C11.5 9 12 7 12 5" stroke="#9A8030" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <path d="M11 11 C12 9 13.5 7 15 6" stroke="#9A8030" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <ellipse cx="8.2" cy="6.3" rx="1.5" ry="0.85" fill="#D4AC3A" transform="rotate(-25 8.2 6.3)"/>
+            <ellipse cx="10.1" cy="4.7" rx="1.5" ry="0.85" fill="#D4AC3A" transform="rotate(-5 10.1 4.7)"/>
+            <ellipse cx="12" cy="4.7" rx="1.5" ry="0.85" fill="#D4AC3A" transform="rotate(5 12 4.7)"/>
+            <ellipse cx="14.5" cy="6.3" rx="1.5" ry="0.85" fill="#D4AC3A" transform="rotate(25 14.5 6.3)"/>
+            <ellipse cx="9" cy="8.5" rx="1.3" ry="0.75" fill="#C89828" transform="rotate(-15 9 8.5)"/>
+            <ellipse cx="13" cy="8.5" rx="1.3" ry="0.75" fill="#C89828" transform="rotate(15 13 8.5)"/>
+            <path d="M11 15 C14 13 17 11 15 8" stroke="#4A8020" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+            <path d="M11 18 C8 16 5 14 7 11" stroke="#4A8020" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+          </svg></div>
+          논벼
+        </button>
+
+        <!-- 마늘: garlic bulb -->
+        <button class="crop-btn" data-crop="마늘" data-mode="이랑" onclick="selectCrop(this)">
+          <div class="crop-ico"><svg width="20" height="24" viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="10" y1="1" x2="10" y2="5" stroke="#6BA030" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M8 5 C7 6 6 8 6 12 C6 16.5 7.5 20 10 20 C12.5 20 14 16.5 14 12 C14 8 13 6 12 5 Z" fill="#F5EFD8" stroke="#C8B068" stroke-width="0.9"/>
+            <path d="M10 5 L10 20" stroke="#C8B068" stroke-width="0.6"/>
+            <path d="M7.2 6.5 C6.5 8.5 6.5 14 7.5 18.5" stroke="#D0C080" stroke-width="0.5" fill="none"/>
+            <path d="M12.8 6.5 C13.5 8.5 13.5 14 12.5 18.5" stroke="#D0C080" stroke-width="0.5" fill="none"/>
+            <path d="M6.5 9 C8 8.2 12 8.2 13.5 9" stroke="#D8C888" stroke-width="0.6" fill="none"/>
+            <path d="M6.2 13 C8 12 12 12 13.8 13" stroke="#D8C888" stroke-width="0.5" fill="none"/>
+            <ellipse cx="10" cy="20.5" rx="4" ry="1.5" fill="#D8C878" opacity="0.5"/>
+          </svg></div>
+          마늘
+        </button>
+
+        <!-- 양파: onion with brown skin -->
+        <button class="crop-btn" data-crop="양파" data-mode="이랑" onclick="selectCrop(this)">
+          <div class="crop-ico"><svg width="20" height="24" viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="10" y1="1" x2="10" y2="5.5" stroke="#6BA030" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M8 5 C6 5.5 4 8 4 12.5 C4 17 6.5 21 10 21 C13.5 21 16 17 16 12.5 C16 8 14 5.5 12 5 Z" fill="#D4882A" stroke="#A05818" stroke-width="0.9"/>
+            <path d="M6 8 C7.5 7.5 12.5 7.5 14 8" stroke="#C07820" stroke-width="0.6" fill="none"/>
+            <path d="M5 11 C7 10.2 13 10.2 15 11" stroke="#B87020" stroke-width="0.6" fill="none"/>
+            <path d="M5 14.5 C7 13.8 13 13.8 15 14.5" stroke="#B87020" stroke-width="0.5" fill="none"/>
+            <path d="M6 17.5 C7.5 17 12.5 17 14 17.5" stroke="#B87020" stroke-width="0.5" fill="none"/>
+            <path d="M8.5 20.5 C9 20.8 9.5 21 10 21 C10.5 21 11 20.8 11.5 20.5" stroke="#A05818" stroke-width="0.6" fill="none"/>
+            <line x1="9" y1="21" x2="8" y2="23" stroke="#8B6A30" stroke-width="0.7" stroke-linecap="round"/>
+            <line x1="10" y1="21.2" x2="10" y2="23" stroke="#8B6A30" stroke-width="0.7" stroke-linecap="round"/>
+            <line x1="11" y1="21" x2="12" y2="23" stroke="#8B6A30" stroke-width="0.7" stroke-linecap="round"/>
+          </svg></div>
+          양파
+        </button>
+
+        <!-- 감자: potato with eyes -->
+        <button class="crop-btn" data-crop="감자" data-mode="이랑" onclick="selectCrop(this)">
+          <div class="crop-ico"><svg width="22" height="20" viewBox="0 0 22 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 10 C3 5 6 2 11 2 C15.5 2 19 5 19 10 C19 15 16 18 11 18 C6.5 18 3 15 3 10Z" fill="#C8924A" stroke="#9A6830" stroke-width="0.9"/>
+            <path d="M3 10 C5 8.5 7 9 8 10 C9 11 10 11.5 11 11 C12 10.5 13.5 9.5 15 10 C16.5 10.5 18 11 19 10" stroke="#B07840" stroke-width="0.5" fill="none"/>
+            <circle cx="7" cy="7" r="1" fill="#8A5830" opacity="0.7"/>
+            <circle cx="7" cy="7" r="0.4" fill="#7A4820"/>
+            <circle cx="13" cy="6" r="1" fill="#8A5830" opacity="0.7"/>
+            <circle cx="13" cy="6" r="0.4" fill="#7A4820"/>
+            <circle cx="15" cy="13" r="0.9" fill="#8A5830" opacity="0.7"/>
+            <circle cx="15" cy="13" r="0.35" fill="#7A4820"/>
+            <circle cx="8" cy="14" r="0.8" fill="#8A5830" opacity="0.6"/>
+          </svg></div>
+          감자
+        </button>
+
+        <!-- 무: daikon radish -->
+        <button class="crop-btn" data-crop="무" data-mode="이랑" onclick="selectCrop(this)">
+          <div class="crop-ico"><svg width="18" height="26" viewBox="0 0 18 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 7 C3.5 4.5 3.5 2.5 5.5 1.5" stroke="#3D8A28" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+            <path d="M9 6.5 C9 4 9 2 9 0.8" stroke="#3D8A28" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+            <path d="M13 7 C14.5 4.5 14.5 2.5 12.5 1.5" stroke="#3D8A28" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+            <path d="M4 8 C3 8.5 2.5 11.5 3 15 C3.5 19 6 24 9 25 C12 24 14.5 19 15 15 C15.5 11.5 15 8.5 14 8 Z" fill="#F8F8F0" stroke="#D0D0C0" stroke-width="1"/>
+            <path d="M6.5 8 C6 10 5.5 14 6 18" stroke="#E0E0D0" stroke-width="0.7" fill="none"/>
+            <path d="M11.5 8 C12 10 12.5 14 12 18" stroke="#E0E0D0" stroke-width="0.7" fill="none"/>
+            <line x1="9" y1="8.5" x2="9" y2="24" stroke="#E8E8E0" stroke-width="0.6"/>
+            <circle cx="9" cy="24.5" r="0.9" fill="#C8A0D8"/>
+          </svg></div>
+          무
+        </button>
+
+        <!-- 배추: napa cabbage -->
+        <button class="crop-btn" data-crop="배추" data-mode="이랑" onclick="selectCrop(this)">
+          <div class="crop-ico"><svg width="22" height="24" viewBox="0 0 22 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 14 C3 7 6 3 11 3 C16 3 19 7 19 14 C19 19 16 22 11 22 C6 22 3 19 3 14Z" fill="#B8D870" stroke="#6A9820" stroke-width="0.8"/>
+            <path d="M5 14 C5 9 7.5 6 11 6 C14.5 6 17 9 17 14 C17 18 14.5 20.5 11 20.5 C7.5 20.5 5 18 5 14Z" fill="#E8F8B0" stroke="#90C040" stroke-width="0.6"/>
+            <path d="M7 14 C7 10.5 8.8 8 11 8 C13.2 8 15 10.5 15 14 C15 17 13.2 19 11 19 C8.8 19 7 17 7 14Z" fill="#FAFCE8" stroke="#A8C858" stroke-width="0.5"/>
+            <line x1="11" y1="3" x2="11" y2="22" stroke="#90C040" stroke-width="0.8"/>
+            <path d="M4 10 C7 9 15 9 18 10" stroke="#90C040" stroke-width="0.6" fill="none"/>
+            <path d="M3.5 14 C7 12.8 15 12.8 18.5 14" stroke="#90C040" stroke-width="0.6" fill="none"/>
+            <path d="M4.5 18 C7 17 15 17 17.5 18" stroke="#90C040" stroke-width="0.5" fill="none"/>
+          </svg></div>
+          배추
+        </button>
+
+        <!-- 콩: soybean pod -->
+        <button class="crop-btn" data-crop="콩" data-mode="이랑" onclick="selectCrop(this)">
+          <div class="crop-ico"><svg width="22" height="20" viewBox="0 0 22 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 14 C1 11 1.5 6.5 4.5 4 C7.5 1.5 13 1.5 16.5 4 C19 5.8 19.5 10 17 14 C15 17 11 19 7.5 18 C4.5 17 3 14 3 14Z" fill="#8BC34A" stroke="#558B2F" stroke-width="0.9"/>
+            <ellipse cx="6" cy="14" rx="2.2" ry="2.5" fill="#7CB342" stroke="#5A8B28" stroke-width="0.5" opacity="0.8"/>
+            <ellipse cx="10.5" cy="9.5" rx="2.2" ry="2.5" fill="#7CB342" stroke="#5A8B28" stroke-width="0.5" opacity="0.8"/>
+            <ellipse cx="15" cy="6" rx="2" ry="2.3" fill="#7CB342" stroke="#5A8B28" stroke-width="0.5" opacity="0.8"/>
+            <path d="M16.5 4 C18 3 20 1.5 20 0.5" stroke="#558B2F" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <path d="M4 4.5 C3.5 3 3 2 3.5 1" stroke="#558B2F" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+          </svg></div>
+          콩
+        </button>
+
+      </div>
+    </div>
+    <div class="fg">
+      <label>필지 주소</label>
+      <input type="text" id="address" placeholder="필지 주소 입력">
+    </div>
+    <div class="fg">
+      <label>조사 날짜</label>
+      <input type="date" id="surveyDate">
+    </div>
+  </div>
+
+  <!-- 비율 설정 -->
+  <div class="card">
+    <div class="card-ttl">비율 설정</div>
+    <div class="ratio-toggle">
+      <div class="rtog-btn active" id="tog1" onclick="selectRatio(1)">① 1번 비율</div>
+      <div class="rtog-btn"        id="tog2" onclick="selectRatio(2)">② 2번 비율</div>
+    </div>
+    <div class="ratio-row active" id="rrow1">
+      <div class="rc"><span class="rc-lbl">가 (가로)</span><input type="text" id="r1_ga" value="0."></div>
+      <div class="rc"><span class="rc-lbl">나 (A세로)</span><input type="text" id="r1_na" value="0."></div>
+      <div class="rc"><span class="rc-lbl">다 (B세로)</span><input type="text" id="r1_da" value="0."></div>
+    </div>
+    <div style="height:8px;"></div>
+    <div class="ratio-row" id="rrow2">
+      <div class="rc"><span class="rc-lbl">가 (가로)</span><input type="text" id="r2_ga" value="0."></div>
+      <div class="rc"><span class="rc-lbl">나 (A세로)</span><input type="text" id="r2_na" value="0."></div>
+      <div class="rc"><span class="rc-lbl">다 (B세로)</span><input type="text" id="r2_da" value="0."></div>
+    </div>
+  </div>
+
+  <!-- 조사값 입력 -->
+  <div class="card">
+    <div class="card-ttl">조사값 입력</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <span style="font-size:12px;font-weight:500;color:var(--gr600);">입력 단위</span>
+      <div class="mode-toggle">
+        <button class="mtog" id="mRidge"  onclick="setMode('이랑')">이랑 (수)</button>
+        <button class="mtog active" id="mLength" onclick="setMode('길이')">길이 (cm)</button>
+      </div>
+    </div>
+    <div class="fg">
+      <label id="lenLabel">가-나 총길이 (cm)</label>
+      <input type="number" id="lenGaNa" oninput="updateHalf()" placeholder="숫자 입력">
+      <div class="hint">추출간격 ÷ 2 = <span class="hint-v" id="halfVal">0</span> <span id="halfUnit">cm</span></div>
+    </div>
+    <div class="ab-grid">
+      <div class="ab-group a-grp">
+        <div class="ab-label a-lbl"><span class="ab-badge a">A</span>A 포구</div>
+        <div class="fg"><label>세로 총길이 (cm)</label><input type="number" id="heightA" placeholder="A 세로"></div>
+        <div class="fg" style="margin-bottom:0;"><label>이랑 평균너비 10개 (cm)</label><input type="number" id="waAvg" placeholder="평균값"></div>
+      </div>
+      <div class="ab-group b-grp">
+        <div class="ab-label b-lbl"><span class="ab-badge b">B</span>B 포구</div>
+        <div class="fg"><label>세로 총길이 (cm)</label><input type="number" id="heightB" placeholder="B 세로"></div>
+        <div class="fg" style="margin-bottom:0;"><label>이랑 평균너비 10개 (cm)</label><input type="number" id="wbAvg" placeholder="평균값"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="alertBox" class="alert">⚠ 가로 기점이 0입니다 — 2번 비율을 사용하세요</div>
+
+  <div class="btn-row">
+    <button class="btn btn-reset" onclick="location.reload()">초기화</button>
+    <button class="btn btn-calc"  onclick="calculate()">계산하기</button>
+  </div>
+
+  <!-- 결과 -->
+  <div id="resultBox" class="results">
+
+    <!-- captureTarget: 이 안의 내용 전체가 캡처됨 -->
+    <div id="captureTarget" style="display:flex;flex-direction:column;gap:11px;">
+
+      <!-- 캡처 헤더: 작물명·주소·날짜 -->
+      <div class="capture-info" id="captureInfo"></div>
+
+      <!-- 입력 데이터 요약 -->
+      <div class="summary-card" id="inputSummary"></div>
+
+      <!-- A 결과 -->
+      <div class="res-card">
+        <div class="res-hdr a"><span class="ab-badge a">A</span>A 포구 산출 결과</div>
+        <div class="res-rows">
+          <div class="res-row"><span class="res-lbl">가로 기점</span><div class="res-right"><span id="outA_ga" class="res-main">-</span><span id="outA_ga_raw" class="res-sub"></span></div></div>
+          <div class="res-row"><span class="res-lbl">세로 기점</span><div class="res-right"><span id="outA_se" class="res-main">-</span><span id="outA_se_raw" class="res-sub"></span></div></div>
+          <div class="res-row"><span class="res-lbl">3㎡ 조사 이랑길이</span><div class="res-right"><span id="outLenA" class="res-main">-</span><span id="outLenA_raw" class="res-sub"></span></div></div>
+        </div>
+      </div>
+
+      <!-- B 결과 -->
+      <div class="res-card">
+        <div class="res-hdr b"><span class="ab-badge b">B</span>B 포구 산출 결과</div>
+        <div class="res-rows">
+          <div class="res-row"><span class="res-lbl">가로 기점</span><div class="res-right"><span id="outB_ga" class="res-main">-</span><span id="outB_ga_raw" class="res-sub"></span></div></div>
+          <div class="res-row"><span class="res-lbl">세로 기점</span><div class="res-right"><span id="outB_se" class="res-main">-</span><span id="outB_se_raw" class="res-sub"></span></div></div>
+          <div class="res-row"><span class="res-lbl">3㎡ 조사 이랑길이</span><div class="res-right"><span id="outLenB" class="res-main">-</span><span id="outLenB_raw" class="res-sub"></span></div></div>
+        </div>
+      </div>
+
+      <!-- 요도 -->
+      <div class="diag-card">
+        <div class="diag-hdr">📐 표본구역 선정 요도</div>
+        <div class="diag-body">
+          <svg id="fieldSvg" viewBox="0 0 320 210" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+
+    </div><!-- /captureTarget -->
+
+    <button class="btn-capture" id="btnCapture">📷&nbsp; 결과 캡처 저장</button>
+
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-    function updateHalf() {
-        const v = parseFloat(document.getElementById('lenGaNa').value);
-        document.getElementById('halfVal').innerText = isNaN(v) ? "0" : (v / 2).toFixed(1);
+let selectedRatio=1, measureMode='길이', selectedCrop='';
+
+(function(){
+  const t=new Date();
+  document.getElementById('surveyDate').value=
+    t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+})();
+
+function selectCrop(btn){
+  document.querySelectorAll('.crop-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedCrop=btn.dataset.crop;
+  document.getElementById('hdrCropBadge').textContent=selectedCrop;
+  document.getElementById('hdrCropBadge').style.display='inline-block';
+  setMode(btn.dataset.mode||'이랑');
+}
+
+function selectRatio(n){
+  selectedRatio=n;
+  ['tog1','tog2'].forEach((id,i)=>document.getElementById(id).classList.toggle('active',i+1===n));
+  ['rrow1','rrow2'].forEach((id,i)=>document.getElementById(id).classList.toggle('active',i+1===n));
+}
+
+function setMode(mode){
+  measureMode=mode;
+  document.getElementById('mRidge').classList.toggle('active',mode==='이랑');
+  document.getElementById('mLength').classList.toggle('active',mode==='길이');
+  document.getElementById('lenLabel').textContent=mode==='이랑'?'가-나 총이랑수 (이랑)':'가-나 총길이 (cm)';
+  updateHalf();
+}
+setMode('길이');
+
+function updateHalf(){
+  const v=parseFloat(document.getElementById('lenGaNa').value);
+  document.getElementById('halfVal').textContent=isNaN(v)?'0':(v/2).toFixed(1);
+  document.getElementById('halfUnit').textContent=measureMode==='이랑'?'이랑':'cm';
+}
+
+function fmt(v){return Math.round(v).toLocaleString('ko-KR');}
+function fmtd(v){return '계산값: '+v.toFixed(1);}
+function setRes(mId,sId,val,unit){
+  document.getElementById(mId).textContent=fmt(val)+' '+unit;
+  document.getElementById(sId).textContent=fmtd(val);
+}
+
+function calculate(){
+  const addr=document.getElementById('address').value;
+  const dateVal=document.getElementById('surveyDate').value;
+  const dateTxt=dateVal?new Date(dateVal+'T00:00:00').toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'}):'미입력';
+  const L=parseFloat(document.getElementById('lenGaNa').value);
+  const Ha=parseFloat(document.getElementById('heightA').value);
+  const Hb=parseFloat(document.getElementById('heightB').value);
+  const waA=parseFloat(document.getElementById('waAvg').value);
+  const wbA=parseFloat(document.getElementById('wbAvg').value);
+  const sel=selectedRatio;
+  const r1ga=document.getElementById('r1_ga').value,r1na=document.getElementById('r1_na').value,r1da=document.getElementById('r1_da').value;
+  const r2ga=document.getElementById('r2_ga').value,r2na=document.getElementById('r2_na').value,r2da=document.getElementById('r2_da').value;
+  const ga=parseFloat(document.getElementById('r'+sel+'_ga').value);
+  const na=parseFloat(document.getElementById('r'+sel+'_na').value);
+  const da=parseFloat(document.getElementById('r'+sel+'_da').value);
+  if(isNaN(L)||isNaN(Ha)||isNaN(Hb)||isNaN(ga)||isNaN(na)||isNaN(da)){alert('비율과 모든 조사값을 입력해주세요.');return;}
+
+  const gaUnit=measureMode==='이랑'?'이랑':'cm';
+  const lLbl=measureMode==='이랑'?'총이랑수':'총길이(cm)';
+
+  // 캡처 헤더 (항상 표시)
+  document.getElementById('captureInfo').innerHTML=
+    (selectedCrop?'<strong>작물: '+selectedCrop+'</strong> &nbsp;·&nbsp; ':'')+
+    '주소: '+(addr||'미입력')+' &nbsp;·&nbsp; 조사일: '+dateTxt;
+
+  document.getElementById('inputSummary').innerHTML=
+    '<strong>입력 데이터 요약</strong><br>'+
+    '선택 비율: '+sel+'번 &nbsp;|&nbsp; 1번: 가('+r1ga+') 나('+r1na+') 다('+r1da+')'+
+    ' &nbsp;|&nbsp; 2번: 가('+r2ga+') 나('+r2na+') 다('+r2da+')<br>'+
+    lLbl+': '+L+' &nbsp;|&nbsp; A세로: '+Ha+'cm &nbsp;|&nbsp; B세로: '+Hb+'cm'+
+    ' &nbsp;|&nbsp; 평균너비 A:'+(waA||0)+' B:'+(wbA||0);
+
+  const a_ga=L*ga, b_ga=a_ga+L/2;
+  const a_se=Ha*na, b_se=Hb*da;
+
+  setRes('outA_ga','outA_ga_raw',a_ga,gaUnit);
+  setRes('outA_se','outA_se_raw',a_se,'cm');
+  setRes('outB_ga','outB_ga_raw',b_ga,gaUnit);
+  setRes('outB_se','outB_se_raw',b_se,'cm');
+
+  document.getElementById('alertBox').style.display=Math.round(a_ga)===0?'block':'none';
+  if(waA>0)setRes('outLenA','outLenA_raw',30000/waA,'cm');
+  if(wbA>0)setRes('outLenB','outLenB_raw',30000/wbA,'cm');
+
+  drawDiagram(ga,na,da,a_ga,b_ga,a_se,b_se,gaUnit);
+
+  const rb=document.getElementById('resultBox');
+  rb.style.display='flex';rb.style.flexDirection='column';rb.style.gap='11px';
+  setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}),50);
+}
+
+function drawDiagram(ga,na,da,a_ga,b_ga,a_se,b_se,gaUnit){
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.getElementById('fieldSvg');
+  svg.innerHTML='';
+  function el(tag,attrs,txt){
+    const e=document.createElementNS(NS,tag);
+    for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);
+    if(txt!==undefined)e.textContent=txt;
+    return e;
+  }
+
+  const FX=50,FY=22,FW=218,FH=116;
+  const bot=FY+FH,rgt=FX+FW;
+  const gaF=Math.min(Math.max(ga,0.05),0.92);
+  const bF =Math.min(Math.max(ga+0.5,0.08),0.97);
+  const naF=Math.min(Math.max(na,0.05),0.92);
+  const daF=Math.min(Math.max(da,0.05),0.92);
+  const axA=FX+FW*gaF, axB=FX+FW*bF;
+  const ayA=bot-FH*naF, ayB=bot-FH*daF;
+
+  // Field
+  svg.appendChild(el('rect',{x:FX,y:FY,width:FW,height:FH,rx:'3',fill:'#EAF3DE',stroke:'none'}));
+  for(let i=1;i<7;i++){const ly=FY+(FH/7)*i;svg.appendChild(el('line',{x1:FX+2,y1:ly,x2:rgt-2,y2:ly,stroke:'#C0DD97','stroke-width':'0.6','stroke-dasharray':'3,5'}));}
+  svg.appendChild(el('rect',{x:FX,y:FY,width:FW,height:FH,rx:'3',fill:'none',stroke:'#3B6D11','stroke-width':'1.5'}));
+
+  // Corner text labels only (no dots)
+  svg.appendChild(el('text',{x:FX-4,y:FY+8,'text-anchor':'end',fill:'#27500A','font-size':'10','font-family':'sans-serif','font-weight':'bold'},'다'));
+  svg.appendChild(el('text',{x:FX,y:bot+12,'text-anchor':'middle',fill:'#27500A','font-size':'10','font-family':'sans-serif','font-weight':'bold'},'가'));
+  svg.appendChild(el('text',{x:rgt,y:bot+12,'text-anchor':'middle',fill:'#27500A','font-size':'10','font-family':'sans-serif','font-weight':'bold'},'나'));
+
+  // Dashed guides
+  svg.appendChild(el('line',{x1:axA,y1:bot,x2:axA,y2:FY,stroke:'#0F6E56','stroke-width':'1.1','stroke-dasharray':'4,3'}));
+  svg.appendChild(el('line',{x1:axB,y1:bot,x2:axB,y2:FY,stroke:'#27500A','stroke-width':'1.1','stroke-dasharray':'4,3'}));
+
+  // 가→A기점 dimension (no background rect)
+  const d1y=bot+28, midA=(FX+axA)/2;
+  svg.appendChild(el('line',{x1:FX,y1:d1y,x2:axA,y2:d1y,stroke:'#0F6E56','stroke-width':'1.2'}));
+  svg.appendChild(el('polygon',{points:`${axA-4},${d1y-3} ${axA+1},${d1y} ${axA-4},${d1y+3}`,fill:'#0F6E56'}));
+  svg.appendChild(el('polygon',{points:`${FX+4},${d1y-3} ${FX-1},${d1y} ${FX+4},${d1y+3}`,fill:'#0F6E56'}));
+  svg.appendChild(el('text',{x:midA,y:d1y-3,'text-anchor':'middle',fill:'#085041','font-size':'8.5','font-family':'sans-serif','font-weight':'bold'},fmt(a_ga)+gaUnit));
+
+  // 가→B기점 dimension (no background rect)
+  const d2y=bot+44, midB=(FX+axB)/2;
+  svg.appendChild(el('line',{x1:FX,y1:d2y,x2:axB,y2:d2y,stroke:'#27500A','stroke-width':'1.2'}));
+  svg.appendChild(el('polygon',{points:`${axB-4},${d2y-3} ${axB+1},${d2y} ${axB-4},${d2y+3}`,fill:'#27500A'}));
+  svg.appendChild(el('polygon',{points:`${FX+4},${d2y-3} ${FX-1},${d2y} ${FX+4},${d2y+3}`,fill:'#27500A'}));
+  svg.appendChild(el('text',{x:midB,y:d2y-3,'text-anchor':'middle',fill:'#173404','font-size':'8.5','font-family':'sans-serif','font-weight':'bold'},fmt(b_ga)+gaUnit));
+
+  // 세로 치수 A
+  const vaX=FX-18, vaLy=(bot+ayA)/2;
+  svg.appendChild(el('line',{x1:vaX,y1:bot,x2:vaX,y2:ayA,stroke:'#0F6E56','stroke-width':'1'}));
+  svg.appendChild(el('polygon',{points:`${vaX-3},${ayA+5} ${vaX},${ayA-1} ${vaX+3},${ayA+5}`,fill:'#0F6E56'}));
+  svg.appendChild(el('polygon',{points:`${vaX-3},${bot-5} ${vaX},${bot+1} ${vaX+3},${bot-5}`,fill:'#0F6E56'}));
+  svg.appendChild(el('text',{x:vaX,y:vaLy+4,'text-anchor':'middle',fill:'#085041','font-size':'7.5','font-family':'sans-serif','font-weight':'bold',transform:`rotate(-90,${vaX},${vaLy})`},fmt(a_se)+'cm'));
+
+  // 세로 치수 B
+  const vbX=rgt+18, vbLy=(bot+ayB)/2;
+  svg.appendChild(el('line',{x1:vbX,y1:bot,x2:vbX,y2:ayB,stroke:'#27500A','stroke-width':'1'}));
+  svg.appendChild(el('polygon',{points:`${vbX-3},${ayB+5} ${vbX},${ayB-1} ${vbX+3},${ayB+5}`,fill:'#27500A'}));
+  svg.appendChild(el('polygon',{points:`${vbX-3},${bot-5} ${vbX},${bot+1} ${vbX+3},${bot-5}`,fill:'#27500A'}));
+  svg.appendChild(el('text',{x:vbX,y:vbLy+4,'text-anchor':'middle',fill:'#173404','font-size':'7.5','font-family':'sans-serif','font-weight':'bold',transform:`rotate(90,${vbX},${vbLy})`},fmt(b_se)+'cm'));
+
+  // Tick marks
+  function tick(x,label,color){
+    svg.appendChild(el('line',{x1:x,y1:bot,x2:x,y2:bot+6,stroke:color,'stroke-width':'1.5'}));
+    svg.appendChild(el('text',{x:x,y:bot+14,'text-anchor':'middle',fill:color,'font-size':'8','font-family':'sans-serif','font-weight':'bold'},label));
+  }
+  tick(axA,'A기점','#0F6E56');
+  tick(axB,'B기점','#27500A');
+
+  // A포구 dot
+  svg.appendChild(el('circle',{cx:axA,cy:ayA,r:'5',fill:'#0F6E56',opacity:'0.15'}));
+  svg.appendChild(el('circle',{cx:axA,cy:ayA,r:'3.2',fill:'#0F6E56'}));
+  svg.appendChild(el('text',{x:axA,y:ayA-9,'text-anchor':'middle',fill:'#085041','font-size':'9','font-family':'sans-serif','font-weight':'bold'},'A포구'));
+
+  // B포구 dot
+  svg.appendChild(el('circle',{cx:axB,cy:ayB,r:'5',fill:'#27500A',opacity:'0.15'}));
+  svg.appendChild(el('circle',{cx:axB,cy:ayB,r:'3.2',fill:'#27500A'}));
+  svg.appendChild(el('text',{x:axB,y:ayB-9,'text-anchor':'middle',fill:'#173404','font-size':'9','font-family':'sans-serif','font-weight':'bold'},'B포구'));
+
+  // Legend — 범례: A포구 / B포구
+  const lgX=FX+FW+30, lgY=FY+4;
+  svg.appendChild(el('circle',{cx:lgX+4,cy:lgY+4,r:'3',fill:'#0F6E56'}));
+  svg.appendChild(el('text',{x:lgX+11,y:lgY+8,fill:'#085041','font-size':'7.5','font-family':'sans-serif'},'A포구'));
+  svg.appendChild(el('circle',{cx:lgX+4,cy:lgY+17,r:'3',fill:'#27500A'}));
+  svg.appendChild(el('text',{x:lgX+11,y:lgY+21,fill:'#173404','font-size':'7.5','font-family':'sans-serif'},'B포구'));
+}
+
+// ── Screenshot ──
+document.getElementById('btnCapture').addEventListener('click',function(){
+  const btn=this;
+  btn.textContent='캡처 중...';
+  if(typeof html2canvas==='undefined'){
+    btn.innerHTML='📷&nbsp; 결과 캡처 저장';
+    alert('라이브러리 로딩 중입니다. 잠시 후 다시 시도해주세요.'); return;
+  }
+  const target=document.getElementById('captureTarget');
+  const cropName=selectedCrop||'농작물';
+  const dateStr=new Date().toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','');
+  const fileName='기점계산결과_'+cropName+'_'+dateStr+'.png';
+
+  html2canvas(target,{
+    scale:2, useCORS:true, allowTaint:true, logging:false,
+    backgroundColor:'#ffffff', imageTimeout:0, removeContainer:true
+  }).then(function(canvas){
+    if(canvas.toBlob){
+      canvas.toBlob(function(blob){
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url; a.download=fileName;
+        document.body.appendChild(a); a.click();
+        setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},200);
+      },'image/png');
+    } else {
+      const a=document.createElement('a');
+      a.href=canvas.toDataURL('image/png'); a.download=fileName;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
-
-    function calculate() {
-        const addr = document.getElementById('address').value;
-        const L = parseFloat(document.getElementById('lenGaNa').value);
-        const Ha = parseFloat(document.getElementById('heightA').value);
-        const Hb = parseFloat(document.getElementById('heightB').value);
-        const waA = parseFloat(document.getElementById('waAvg').value);
-        const wbA = parseFloat(document.getElementById('wbAvg').value);
-        
-        const sel = document.querySelector('input[name="rType"]:checked').value;
-        const r1_ga = document.getElementById('r1_ga').value;
-        const r1_na = document.getElementById('r1_na').value;
-        const r1_da = document.getElementById('r1_da').value;
-        const r2_ga = document.getElementById('r2_ga').value;
-        const r2_na = document.getElementById('r2_na').value;
-        const r2_da = document.getElementById('r2_da').value;
-
-        const ga = parseFloat(document.getElementById('r'+sel+'_ga').value);
-        const na = parseFloat(document.getElementById('r'+sel+'_na').value);
-        const da = parseFloat(document.getElementById('r'+sel+'_da').value);
-        
-        if(isNaN(L) || isNaN(Ha) || isNaN(Hb) || isNaN(ga) || isNaN(na) || isNaN(da)) {
-            alert("비율과 모든 조사값을 입력해주세요."); return;
-        }
-
-        document.getElementById('inputSummary').innerHTML = `
-            <b>[입력 데이터 요약]</b><br>
-            • 주소: ${addr || '미입력'}<br>
-            • 선택 비율: ${sel}번 세트<br>
-            • 1번 세트: 가(${r1_ga}), 나(${r1_na}), 다(${r1_da})<br>
-            • 2번 세트: 가(${r2_ga}), 나(${r2_na}), 다(${r2_da})<br>
-            • 가나총길이: ${L}, A세로: ${Ha}, B세로: ${Hb}, 평균너비: A(${waA || 0}), B(${wbA || 0})
-        `;
-
-        const a_ga_raw = L * ga;
-        const b_ga_raw = a_ga_raw + (L / 2);
-        const a_se_raw = Ha * na;
-        const b_se_raw = Hb * da;
-
-        function setRes(mainId, subId, val, unit) {
-            // 사사오입(반올림) 처리: 소수점 이하 첫째 자리에서 반올림하여 정수 강조
-            const rounded = Math.round(val);
-            document.getElementById(mainId).innerText = rounded.toLocaleString() + " " + unit;
-            // 보조 계산값 표시: 소수점 첫째 자리까지 표시
-            document.getElementById(subId).innerText = "(계산값: " + val.toFixed(1) + ")";
-        }
-
-        setRes('outA_ga', 'outA_ga_raw', a_ga_raw, '이랑/cm');
-        setRes('outA_se', 'outA_se_raw', a_se_raw, 'cm');
-        setRes('outB_ga', 'outB_ga_raw', b_ga_raw, '이랑/cm');
-        setRes('outB_se', 'outB_se_raw', b_se_raw, 'cm');
-
-        if (Math.round(a_ga_raw) === 0) {
-            document.getElementById('alertBox').style.display = 'block';
-        } else {
-            document.getElementById('alertBox').style.display = 'none';
-        }
-
-        if(waA > 0) {
-            const val = 30000 / waA;
-            setRes('outLenA', 'outLenA_raw', val, 'cm');
-        }
-        if(wbA > 0) {
-            const val = 30000 / wbA;
-            setRes('outLenB', 'outLenB_raw', val, 'cm');
-        }
-
-        document.getElementById('resultBox').style.display = 'block';
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    }
+    btn.innerHTML='📷&nbsp; 결과 캡처 저장';
+  }).catch(function(err){
+    console.error(err);
+    alert('캡처에 실패했습니다. 다시 시도해주세요.');
+    btn.innerHTML='📷&nbsp; 결과 캡처 저장';
+  });
+});
 </script>
 </body>
 </html>
